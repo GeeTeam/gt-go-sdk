@@ -4,9 +4,10 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
+	"net/url"
+	"fmt"
 )
 
 //极验配置
@@ -17,13 +18,15 @@ type geetestConfig struct {
 	Debug           bool   //是否开启debug模式 暂未实现
 	ServerStatusUrl string //服务器状态校验url, 可选
 	RegisterUrl     string //注册获取challenge地址 可选
+	ServerValidUrl  string //二次验证地址
+	ServerValid     bool   // 二次验证,向服务器发起验证,默认为false
 }
 
 // 初始化基本配置
 func init() {
+	Config.ServerValidUrl = "http://api.geetest.com/validate.php"
 	Config.ServerStatusUrl = "http://api.geetest.com/check_status.php"
 	Config.RegisterUrl = "http://api.geetest.com/register.php?gt="
-
 }
 
 // 极验配置项
@@ -39,7 +42,7 @@ func (self GeeTestLib) CheckServerStatus() bool {
 	resp, err := http.Get(Config.ServerStatusUrl)
 
 	if err != nil {
-		log.Println(err)
+		//log.Println(err)
 		return false
 	}
 
@@ -77,22 +80,50 @@ func (self *GeeTestLib) GenerateChallenge() (string, error) {
 // 根据极验服务器加密方式,将从极验服务器得到的加密码和后台加密码对比,
 // 如果相同则校验成功,返回true, 否则false
 // challenge 前端传过来的challenge, 默认是 geetest_challenge 参数
-// secCode 前端传过来的加密后的值,默认是 geetest_validate 参数
-func (self GeeTestLib) Valid(challenge, secCode string) bool {
-	return ValidChallenge(challenge, self.Challenge, secCode)
+// validateCode 前端传过来的加密后的值,默认是 geetest_validate 参数
+// secCode 用于二次验证,如果开启了2次验证请填写
+func (self GeeTestLib) Valid(challenge, validateCode string, secCode...  string) (bool, error) {
+	return ValidChallenge(challenge, self.Challenge, validateCode, secCode...)
 }
 
 // 用于校验验证码, 和Valid方法功能相同,但是允许自行传入之前生成的challenge进行校验
 // frontChallenge 前端传过来的34位challenge
 // backChallenge 后台生成的challenge
-// secCode 前台传过来的加密校验码
-func ValidChallenge(frontChallenge, backChallenge, secCode string) bool {
+// validateCode 前台传过来的加密校验码
+// secCode 用于二次验证,如果开启了2次验证请填写
+func ValidChallenge(frontChallenge, backChallenge, validateCode string, secCode...  string) (bool, error) {
 	if len(frontChallenge) != 34 || frontChallenge[:32] != backChallenge {
-		return false
+		return false, nil
 	}
 
-	return strings.EqualFold(md5sum(Config.PrivateKey+"geetest"+frontChallenge), secCode)
+	if md5sum(Config.PrivateKey + "geetest" + frontChallenge) != validateCode {
+		return false, nil
+	}
+
+	//二次验证
+	if Config.ServerValid {
+		if len(secCode) == 0 {
+			return false, nil
+		}
+
+		params := make(url.Values, 1)
+		params.Add("seccode", secCode[0])
+		resp, err := http.PostForm(Config.ServerValidUrl, params)
+		if err != nil {
+			return false, err
+		}
+
+		defer resp.Body.Close()
+
+		result := getResponseResult(resp)
+		if md5sum(secCode[0]) == result {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
+
 
 // 计算字符串的md5
 func md5sum(text string) string {
