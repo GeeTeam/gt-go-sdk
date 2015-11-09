@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://ss0.bdstatic.com/5aV1bjqh_Q23odCf/static/superman/js/lib/jquery-1.10.2_d88366fd.js"></script>
+    <script src="http://api.geetest.com/get.php"></script>
+</head>
+<body>
+<div id="div_id_embed"></div>
+
+<p/>
+<button id="btn_valid">验证</button>
+</body>
+<script>
+
+    var geetestValidate = false;
+    var gt_captcha_obj = null;
+
+$(function(){
+    $.get('/getChallenge', {}, function(data){
+                gt_captcha_obj = new window.Geetest({
+                gt: "157e7df54d8deb46238cef3c5848a2bf",
+                challenge: data.data,
+            product: "embed"
+        });
+
+        gt_captcha_obj.onSuccess(function() {
+        console.log(gt_captcha_obj.getValidate());
+        geetestValidate = gt_captcha_obj.getValidate().geetest_validate;
+    });
+
+    gt_captcha_obj.config.challenge.substr(0, 32);
+
+    gt_captcha_obj.onSuccess(function() {
+        console.log(gt_captcha_obj.getValidate());
+        geetestValidate = gt_captcha_obj.getValidate();
+    });
+
+    gt_captcha_obj.onRefresh(function(){
+        geetestValidate = false;
+        getChallenge();
+    });
+
+    gt_captcha_obj.onError(function(){
+        alert('加载验证码出错');
+    });
+
+    gt_captcha_obj.onStatusChange(function(data){
+        if ('Fail'==data) {
+            geetestValidate = false;
+        }
+    });
+
+    gt_captcha_obj.appendTo("#div_id_embed");
+    }, 'json');
+
+    $('#btn_valid').click(function(){
+        if(!geetestValidate) {
+            alert('验证码验证失败');
+            return;
+        }
+
+        $.post('/validate', geetestValidate, function(data){
+           alert(data.msg);
+        }, 'json');
+    });
+
+    function getChallenge() {
+        $.get('/getChallenge', {}, function(data){
+            gt_captcha_obj.config.challenge = data.data;
+        }, 'json');
+
+        gt_captcha_obj.config.challenge.substr(0, 32);
+    }
+});
+
+</script>
+</html>
