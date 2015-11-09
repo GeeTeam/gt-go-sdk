@@ -1,11 +1,12 @@
 package geetest
+
 import (
-	"net/http"
-	"io/ioutil"
-	"strings"
-	"log"
 	"crypto/md5"
 	"encoding/hex"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"strings"
 )
 
 //极验配置
@@ -32,12 +33,10 @@ type GeeTestLib struct {
 	Challenge string //Challenge
 }
 
-
 // 校验服务器是否正常
 // 如果服务器正常,且返回正确状态(ok),则返回true,否则false
-func (self GeeTestLib)CheckServerStatus() bool {
+func (self GeeTestLib) CheckServerStatus() bool {
 	resp, err := http.Get(Config.ServerStatusUrl)
-
 
 	if err != nil {
 		log.Println(err)
@@ -60,7 +59,7 @@ func (self GeeTestLib)CheckServerStatus() bool {
 }
 
 // 生成challenge
-func (self *GeeTestLib)GenerateChallenge() (string, error) {
+func (self *GeeTestLib) GenerateChallenge() (string, error) {
 	resp, err := http.Get(Config.RegisterUrl + Config.CaptchaId)
 	if err != nil {
 		return "", err
@@ -79,7 +78,7 @@ func (self *GeeTestLib)GenerateChallenge() (string, error) {
 // 如果相同则校验成功,返回true, 否则false
 // challenge 前端传过来的challenge, 默认是 geetest_challenge 参数
 // secCode 前端传过来的加密后的值,默认是 geetest_validate 参数
-func (self GeeTestLib)Valid(challenge, secCode string) bool {
+func (self GeeTestLib) Valid(challenge, secCode string) bool {
 	return ValidChallenge(challenge, self.Challenge, secCode)
 }
 
@@ -87,12 +86,12 @@ func (self GeeTestLib)Valid(challenge, secCode string) bool {
 // frontChallenge 前端传过来的34位challenge
 // backChallenge 后台生成的challenge
 // secCode 前台传过来的加密校验码
-func ValidChallenge(frontChallenge, backChallenge ,secCode string) bool {
+func ValidChallenge(frontChallenge, backChallenge, secCode string) bool {
 	if len(frontChallenge) != 34 || frontChallenge[:32] != backChallenge {
 		return false
 	}
 
-	return strings.EqualFold(md5sum(Config.PrivateKey + "geetest" + frontChallenge), secCode)
+	return strings.EqualFold(md5sum(Config.PrivateKey+"geetest"+frontChallenge), secCode)
 }
 
 // 计算字符串的md5
@@ -114,4 +113,3 @@ func getResponseResult(resp *http.Response) string {
 	return string(bodyBytes)
 
 }
-
