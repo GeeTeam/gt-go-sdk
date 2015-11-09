@@ -5,9 +5,8 @@ import (
 	"encoding/hex"
 	"io/ioutil"
 	"net/http"
-	"strings"
 	"net/url"
-	"fmt"
+	"strings"
 )
 
 //极验配置
@@ -82,7 +81,7 @@ func (self *GeeTestLib) GenerateChallenge() (string, error) {
 // challenge 前端传过来的challenge, 默认是 geetest_challenge 参数
 // validateCode 前端传过来的加密后的值,默认是 geetest_validate 参数
 // secCode 用于二次验证,如果开启了2次验证请填写
-func (self GeeTestLib) Valid(challenge, validateCode string, secCode...  string) (bool, error) {
+func (self GeeTestLib) Valid(challenge, validateCode string, secCode ...string) (bool, error) {
 	return ValidChallenge(challenge, self.Challenge, validateCode, secCode...)
 }
 
@@ -91,12 +90,12 @@ func (self GeeTestLib) Valid(challenge, validateCode string, secCode...  string)
 // backChallenge 后台生成的challenge
 // validateCode 前台传过来的加密校验码
 // secCode 用于二次验证,如果开启了2次验证请填写
-func ValidChallenge(frontChallenge, backChallenge, validateCode string, secCode...  string) (bool, error) {
+func ValidChallenge(frontChallenge, backChallenge, validateCode string, secCode ...string) (bool, error) {
 	if len(frontChallenge) != 34 || frontChallenge[:32] != backChallenge {
 		return false, nil
 	}
 
-	if md5sum(Config.PrivateKey + "geetest" + frontChallenge) != validateCode {
+	if md5sum(Config.PrivateKey+"geetest"+frontChallenge) != validateCode {
 		return false, nil
 	}
 
@@ -123,7 +122,6 @@ func ValidChallenge(frontChallenge, backChallenge, validateCode string, secCode.
 
 	return false, nil
 }
-
 
 // 计算字符串的md5
 func md5sum(text string) string {

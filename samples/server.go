@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	cacheMap = map[string]interface{}{}
+	cacheMap   = map[string]interface{}{}
 	geetestKey = "_geetest"
 )
 
@@ -29,10 +29,10 @@ func main() {
 		if !ok {
 			result.Msg = "系统错误"
 		} else {
-			ok, err := geetestLib.Valid(req.PostFormValue("geetest_challenge"), req.PostFormValue("geetest_validate"),req.PostFormValue("geetest_seccode"))
+			ok, err := geetestLib.Valid(req.PostFormValue("geetest_challenge"), req.PostFormValue("geetest_validate"), req.PostFormValue("geetest_seccode"))
 			if err != nil {
 				result.Msg = "系统错误"
-			}else if ok {
+			} else if ok {
 				result.Msg = "验证成功"
 				result.Success = true
 			} else {
