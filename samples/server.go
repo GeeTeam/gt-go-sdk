@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"GeeTeam/gt-go-sdk"
+	"github.com/GeeTeam/gt-go-sdk"
 	"net/http"
 	_ "net/http"
 )
