@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/sdvdxl/geetest"
+	"GeeTeam/gt-go-sdk"
 	"net/http"
 	_ "net/http"
 )
