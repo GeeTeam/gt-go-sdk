@@ -57,7 +57,7 @@ func main() {
 		writer.Write(resultBytes)
 	})
 
-	fmt.Println("server starged and listen on 8080")
+	fmt.Println("server started and listen on 8080")
 	http.ListenAndServe(":8080", nil)
 }
 
